@@ -6,7 +6,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { response } from "express";
 const registerUser=asyncHandler(async (req,res)=>{
    // Steps
-   /*
+   /*     
    1. Get user details from frontend
    2. Validations - not Empty
    3. Check if User already exist: username and email
@@ -32,7 +32,7 @@ const registerUser=asyncHandler(async (req,res)=>{
       throw new ApiError(400,"All fields are required")
    }
 
-   const existedUser= User.findOne({
+   const existedUser= await User.findOne({
          $or: [{username}, {email}]
    })
 
@@ -65,7 +65,7 @@ const registerUser=asyncHandler(async (req,res)=>{
     username:username.toLowerCase()
    })
 
-   const createdUser =await user.findById(user._id).select(
+   const createdUser =await User.findById(user._id).select(
     "-password -refreshToken"
    )
 
