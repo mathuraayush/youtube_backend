@@ -10,13 +10,13 @@ const generateAccessTokenAndRefreshToken =async(userId)=>
 {
  try{
    const user= await User.findById(userId)
-   const acessToken=user.generateAccessToken()
+   const accessToken=user.generateAccessToken()
    const refreshToken=user.generateRefreshToken()
    
    user.refreshToken=refreshToken
    await user.save({validateBeforeSave: false})
 
-   return {acessToken,refreshToken}
+   return {accessToken,refreshToken}
 
  } catch (error){
      throw new ApiError(500,"Something went wrong while generting tokens")
@@ -139,7 +139,7 @@ const loginUser =asyncHandler(async (req,res)=>{
    if(!isPasswordValid){
       throw new ApiError(401,"Invalid User Credential")
    }
-   const {acessToken,refreshToken}=await generateAccessTokenAndRefreshToken(user._id)
+   const {accessToken,refreshToken}=await generateAccessTokenAndRefreshToken(user._id)
 
    // sending in secure cookies
    const loggedInUser =await User.findById(user._id).select("-password -refreshToken")
@@ -151,13 +151,13 @@ const loginUser =asyncHandler(async (req,res)=>{
 
    return res.
    status(200)
-   .cookie("accessToken",acessToken, options)
+   .cookie("accessToken",accessToken, options)
    .cookie("refreshToken",refreshToken, options)
    .json(
       new ApiResponse(
          200,
          {
-            user: loggedInUser, acessToken,
+            user: loggedInUser, accessToken,
             refreshToken
          },
          "User Logged In Sucessfully"
@@ -218,11 +218,11 @@ try {
       httpOnly:true,
       secure:true
      } 
-     const {acessToken,newRefreshToken}=await generateAccessTokenAndRefreshToken(user_id)
+     const {accessToken,newRefreshToken}=await generateAccessTokenAndRefreshToken(user._id)
    
      return res
      .status(200)
-     .cookie("accessToken",acessToken,options)
+     .cookie("accessToken",accessToken,options)
      .cookie("refreshToken",newRefreshToken,options)
      .json(
          new ApiResponse(200,{accessToken,refreshToken:newRefreshToken},"Access Token Refreshed")
@@ -287,7 +287,7 @@ const updateUserAvatar=asyncHandler(async(req,res)=>
       throw new ApiError(400,"Avatar File is missing")
    }
 
-   const avatar =await uploadOnCloudinary(avatarLocalPath)
+   const avatar =await uploadOnCloudinary(localPath)
 
    if(!avatar.url){
       throw new ApiError(400,"Error while Uploading Avatar")
@@ -317,7 +317,7 @@ const updateUserCoverImage=asyncHandler(async(req,res)=>
       throw new ApiError(400,"CoverImage File is missing")
    }
 
-   const coverImage =await uploadOnCloudinary(avatarLocalPath)
+   const coverImage =await uploadOnCloudinary(localPath)
 
    if(!coverImage.url){
       throw new ApiError(400,"Error while Uploading Avatar")
