@@ -343,7 +343,7 @@ return res
 const getUserChannelProfile =asyncHandler(async(req,res)=>{
    const{username} =req.params
 
-   if(username?.trim()){
+   if(!username?.trim()){
       throw new ApiError(400,"Username Not Defined")
    }
 
@@ -397,6 +397,7 @@ const getUserChannelProfile =asyncHandler(async(req,res)=>{
             coverImage:1,
             email:1,
             isSubscribed:1
+            
          }
       }
   ])
@@ -421,5 +422,6 @@ export {
     getcurrentUser,
     updateAcoountDetails,
     updateUserAvatar,
-    updateUserCoverImage
+    updateUserCoverImage,
+    getUserChannelProfile
 }
