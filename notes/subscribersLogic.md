@@ -31,4 +31,22 @@
    - **CWC** has 3 subscribers  
    - **a** subscribed to 2 channels {*CWC* and *GFG*}
 
+## How have we implemented it here: 
+
+   # Aggregation Piplines
+
+   ## What are Aggregation Piplines?
+
+   "An aggregation pipeline consists of one or more **stages** that process documents. These documents can come from a collection, a view, or a specially designed stage."
+
+   Each stage performs an operation on the input documents.The documents that a stage outputs are then passed to the next stage in the pipeline.
+
+   Aggregation pipelines run with the db.collection.aggregate() method.
+
+   ## Commonly Used Aggregation Functions: 
+
+   
+
+
+
 
