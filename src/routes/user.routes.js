@@ -43,13 +43,13 @@ router.route("/getcurrentUser").get(verifyJWT,getcurrentUser)
 router.route("/updateAcoountDetails").patch(verifyJWT,updateAcoountDetails)
 router.route("/updateUserAvatar").patch(
     verifyJWT,
-    upload.single("/avatar"),
+    upload.single("avatar"),
     updateUserAvatar
 );
 
 router.route("/updateUserCoverImage").patch(
     verifyJWT,
-    upload.single("/coverImage"),
+    upload.single("coverImage"),
     updateUserCoverImage
 );
 router.route("/c/:username").get(verifyJWT,getUserChannelProfile)
