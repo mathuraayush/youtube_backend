@@ -149,10 +149,12 @@ const loginUser =asyncHandler(async (req,res)=>{
    // sending in secure cookies
    const loggedInUser =await User.findById(user._id).select("-password -refreshToken")
 
-   const options ={
-      httpOnly:true,
-      secure:true
-   }
+const options = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none"
+};
+
 
    return res.
    status(200)
