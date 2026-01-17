@@ -246,10 +246,10 @@ const deleteVideo = asyncHandler(async (req, res) => {
 
 export { 
         uploadVideo,
-         getAllVideos,
-         incrementVideoViews,
-         deleteVideo,
-         updateVideo,
-         getChannelVideos,
-         getVideoById 
+        getAllVideos,
+        incrementVideoViews,
+        deleteVideo,
+        updateVideo,
+        getChannelVideos,
+        getVideoById 
         };

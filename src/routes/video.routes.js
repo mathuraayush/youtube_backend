@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { uploadVideo } from "../controllers/video.controller.js";
+import { uploadVideo , getAllVideos , getVideoById, incrementVideoViews, getChannelVideos, updateVideo, deleteVideo } from "../controllers/video.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
