@@ -129,7 +129,7 @@ const loginUser =asyncHandler(async (req,res)=>{
       6. Email with link to reset the password
       7. Resetting the password and logging in 
       */
-   const { email, username, password } = req.body;
+const { email, username, password } = req.body;
 
 if (!email && !username) {
   throw new ApiError(400, "Username or Email is required");
@@ -144,6 +144,7 @@ const user = await User.findOne(
 if (!user) {
   throw new ApiError(404, "User does not exist");
 }
+
    const isPasswordValid=await user.isPasswordCorrect(password)
 
    if(!isPasswordValid){
