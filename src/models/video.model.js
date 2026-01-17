@@ -1,47 +1,46 @@
 import mongoose, {Schema} from "mongoose";
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";
 
-const videoSchema =new Schema(
-    {
-        videoFile:{
-            type:String,//Cloudnary
-            required:true,
-        },
-        thumbnail:{
-            type:String,//Cloudnary
-            required:true,
-        },    
-        title:{
-            type:String,//Cloudnary
-            required:true,
-        },
-        description:{
-            type:String,//Cloudnary
-            required:true,
-        },
-        duration:{
-            type:Number,//Cloudnary
-            required:true,
-        },     
-        views:{
-            type:Number,//Cloudnary
-            default:0
-        },
-      
-        isPublished:{
-            type:Boolean,//Cloudnary
-            default:true,
-        },
-        owner: {
-            type:Schema.Types.ObjectId,
-            ref:"User"
-        }
-
+const videoSchema = new Schema(
+  {
+    videoFile: {
+      type: String,
+      required: true,
     },
-    {
-        timestamps: true
+    thumbnail: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    duration: {
+      type: Number,
+    },
+    views: {
+      type: Number,
+      default: 0,
+    },
+    visibility: {
+      type: String,
+      enum: ["public", "private", "unlisted"],
+      default: "public",
+    },
+    tags: [String],
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     }
-)
+  },
+  { timestamps: true }
+);
+
 
 
 
