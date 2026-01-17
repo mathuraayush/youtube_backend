@@ -93,4 +93,163 @@ const uploadVideo = asyncHandler(async (req, res) => {
   );
 });
 
-export { uploadVideo };
+// Getting all Videos (on home page!)
+
+const getAllVideos = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
+
+  const pipeline = Video.aggregate([
+    { $match: { visibility: "public" } },
+    { $sort: { createdAt: -1 } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+    {
+      $project: {
+        title: 1,
+        thumbnail: 1,
+        views: 1,
+        duration: 1,
+        createdAt: 1,
+        "owner.username": 1,
+        "owner.avatar": 1,
+      },
+    },
+  ]);
+
+  const options = {
+    page: Number(page),
+    limit: Number(limit),
+  };
+
+  const videos = await Video.aggregatePaginate(pipeline, options);
+
+  return res.status(200).json(
+    new ApiResponse(200, videos, "Videos fetched successfully")
+  );
+});
+
+// get one video (viewing page)
+
+const getVideoById = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  const video = await Video.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(videoId) } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+  ]);
+
+  if (!video.length) {
+    throw new ApiError(404, "Video not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, video[0], "Video fetched successfully")
+  );
+});
+
+// increment views
+
+const incrementVideoViews = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  await Video.findByIdAndUpdate(videoId, {
+    $inc: { views: 1 },
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, null, "View count updated")
+  );
+});
+
+// Getting Channel Videos
+
+const getChannelVideos = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { page = 1, limit = 10 } = req.query;
+
+  const pipeline = Video.aggregate([
+    { $match: { owner: new mongoose.Types.ObjectId(userId) } },
+    { $sort: { createdAt: -1 } },
+  ]);
+
+  const videos = await Video.aggregatePaginate(pipeline, {
+    page,
+    limit,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, videos, "Channel videos fetched")
+  );
+});
+
+// updating video's description,title,etc (owner only!)
+
+const updateVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+  const { title, description, tags, visibility } = req.body;
+
+  const video = await Video.findOneAndUpdate(
+    { _id: videoId, owner: req.user._id },
+    {
+      title,
+      description,
+      tags,
+      visibility,
+    },
+    { new: true }
+  );
+
+  if (!video) {
+    throw new ApiError(403, "Not authorized or video not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, video, "Video updated successfully")
+  );
+});
+
+// Deleting video (owner only!)
+
+const deleteVideo = asyncHandler(async (req, res) => {
+  const { videoId } = req.params;
+
+  const video = await Video.findOneAndDelete({
+    _id: videoId,
+    owner: req.user._id,
+  });
+
+  if (!video) {
+    throw new ApiError(403, "Not authorized or video not found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, null, "Video deleted successfully")
+  );
+});
+
+
+
+export { 
+        uploadVideo,
+         getAllVideos,
+         incrementVideoViews,
+         deleteVideo,
+         updateVideo,
+         getChannelVideos,
+         getVideoById 
+        };

@@ -19,4 +19,14 @@ router.post(
   uploadVideo
 );
 
+router.get("/", getAllVideos);
+router.get("/:videoId", getVideoById);
+router.post("/:videoId/views", incrementVideoViews);
+
+router.get("/channel/:userId", getChannelVideos);
+
+router.patch("/:videoId", verifyJWT, updateVideo);
+router.delete("/:videoId", verifyJWT, deleteVideo);
+
+
 export default router;
