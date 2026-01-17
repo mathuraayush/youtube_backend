@@ -136,19 +136,29 @@ console.log("EMAIL:", email);
 console.log("USERNAME:", username);
 
 
-if (!email && !username) {
+let emailInput = email?.trim().toLowerCase();
+let usernameInput = username?.trim().toLowerCase();
+
+// 🔥 SAFETY NET
+if (!emailInput && usernameInput?.includes("@")) {
+  emailInput = usernameInput;
+  usernameInput = undefined;
+}
+
+if (!emailInput && !usernameInput) {
   throw new ApiError(400, "Username or Email is required");
 }
 
 const user = await User.findOne(
-  email
-    ? { email: email.toLowerCase() }
-    : { username: username.toLowerCase() }
+  emailInput
+    ? { email: emailInput }
+    : { username: usernameInput }
 );
 
 if (!user) {
   throw new ApiError(404, "User does not exist");
 }
+
 
    const isPasswordValid=await user.isPasswordCorrect(password)
 
