@@ -20,10 +20,13 @@ router.post(
 );
 
 router.get("/", getAllVideos);
+
+// 🔥 SPECIFIC routes FIRST
+router.get("/channel/:userId", getChannelVideos);
+
+// 🔥 THEN generic param routes
 router.get("/:videoId", getVideoById);
 router.post("/:videoId/views", incrementVideoViews);
-
-router.get("/channel/:userId", getChannelVideos);
 
 router.patch("/:videoId", verifyJWT, updateVideo);
 router.delete("/:videoId", verifyJWT, deleteVideo);
