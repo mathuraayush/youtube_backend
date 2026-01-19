@@ -1,32 +1,53 @@
-import {v2 as cloudinary} from "cloudinary" 
-import { response } from "express";
-import fs from "fs"
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
 import dotenv from "dotenv";
-dotenv.config();
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key:process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
 
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary=async (localFilePath)=>{
-    try{
-       if(!localFilePath) return null;
-       //upload file on Cloudinary
-       const result = await cloudinary.uploader.upload(localFilePath,{
-          resource_type:"auto",
+/**
+ * Upload file to Cloudinary
+ * @param {string} localFilePath
+ * @param {"image" | "video"} type
+ */
+const uploadOnCloudinary = async (localFilePath, type = "image") => {
+  try {
+    if (!localFilePath) return null;
 
-       })
-       //File has been uploaded succesfully
-       console.log("file has been uploaded succesfully on cloudinary", result.url);
-       fs.unlinkSync(localFilePath) // Remove temp file after upload
-       return result;
-    } catch(error){
-         if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-        }
-         return null;// Remove the locally saved temp file as the upload operation got failed
+    const options =
+      type === "video"
+        ? {
+            resource_type: "video",
+            format: "mp4",          // 🔥 CRITICAL
+          }
+        : {
+            resource_type: "image",
+          };
+
+    const result = await cloudinary.uploader.upload(
+      localFilePath,
+      options
+    );
+
+    fs.unlinkSync(localFilePath);
+
+    // 🔑 RETURN ONLY WHAT FRONTEND NEEDS
+    return {
+      url: result.secure_url,
+      public_id: result.public_id,
+      duration: result.duration || null,
+    };
+  } catch (error) {
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
     }
-}
-export {uploadOnCloudinary}
+    return null;
+  }
+};
+
+export { uploadOnCloudinary };
