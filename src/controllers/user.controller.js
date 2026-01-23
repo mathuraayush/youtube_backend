@@ -114,7 +114,7 @@ const registerUser=asyncHandler(async (req,res)=>{
 })
 
 const loginUser =asyncHandler(async (req,res)=>{
-
+console.log("LOGIN CONTROLLER HIT!");
       /* 
       Algo:
       1. Taking fields from frontend: email, password / username,password (req->body)
