@@ -2,8 +2,9 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
-app.set("trust proxy",1);
+
 const app =express()
+app.set("trust proxy",1);
 app.use(cors({
   origin: process.env.CORS_ORIGIN.split(","),
   credentials: true
