@@ -129,18 +129,37 @@ const loginUser =asyncHandler(async (req,res)=>{
       6. Email with link to reset the password
       7. Resetting the password and logging in 
       */
-   const {email,username,password} =req.body
-   if(!(username || email)) {
-      throw new ApiError(400,"Username or Email is required")
-   }
-   
-   const user= await User.findOne({
-      $or: [{username},{email}]
-   })
-   
-   if(!user){
-      throw new ApiError(404,"User does not exist")
-   }
+const { email, username, password } = req.body;
+
+console.log("LOGIN BODY:", req.body);
+console.log("EMAIL:", email);
+console.log("USERNAME:", username);
+
+
+let emailInput = email?.trim().toLowerCase();
+let usernameInput = username?.trim().toLowerCase();
+
+// 🔥 SAFETY NET
+if (!emailInput && usernameInput?.includes("@")) {
+  emailInput = usernameInput;
+  usernameInput = undefined;
+}
+
+if (!emailInput && !usernameInput) {
+  throw new ApiError(400, "Username or Email is required");
+}
+
+const user = await User.findOne(
+  emailInput
+    ? { email: emailInput }
+    : { username: usernameInput }
+);
+
+if (!user) {
+  throw new ApiError(404, "User does not exist");
+}
+
+
    const isPasswordValid=await user.isPasswordCorrect(password)
 
    if(!isPasswordValid){
