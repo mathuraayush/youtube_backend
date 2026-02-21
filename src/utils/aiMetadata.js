@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY);
 
 /**
  * Generate AI metadata (title, description, tags) for a video
@@ -18,7 +18,7 @@ const generateVideoMetadata = async (userTitle, userDescription, existingTags = 
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     const prompt = `You are a video metadata specialist. Improve and enhance video metadata.
 
