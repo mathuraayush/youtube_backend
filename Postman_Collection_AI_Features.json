@@ -1,0 +1,462 @@
+{
+  "info": {
+    "name": "Vidora - AI Video Management API",
+    "description": "API collection for testing AI-powered video management endpoints",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Upload Video with AI Metadata",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/upload",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "upload"]
+        },
+        "description": "Upload video with title and description. AI will automatically enhance metadata and generate smart tags (max 5).\n\nForm fields:\n- videoFile: Video file (required)\n- thumbnail: Thumbnail image (required)\n- title: Original title (required)\n- description: Original description (required)\n- visibility: public/private/unlisted (optional, default: public)\n- tags: Comma-separated tags (optional, AI will enhance)"
+      }
+    },
+    {
+      "name": "Search Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/search?query=cooking&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "search"],
+          "query": [
+            {
+              "key": "query",
+              "value": "cooking",
+              "description": "Search term (required)"
+            },
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (optional, default: 1)"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page (optional, default: 10)"
+            }
+          ]
+        },
+        "description": "Smart search across video titles, descriptions, and tags.\n\nSearches with case-insensitive regex matching.\nResults are paginated and sorted by creation date (newest first)."
+      }
+    },
+    {
+      "name": "Filter Videos - By Tags",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/filter?tags=recipe,tutorial&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "filter"],
+          "query": [
+            {
+              "key": "tags",
+              "value": "recipe,tutorial",
+              "description": "Comma-separated tags to filter (OR logic)"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Filter videos by tags. Use comma-separated values for OR logic.\nExample: tags=recipe,tutorial will return videos with either 'recipe' OR 'tutorial' tags."
+      }
+    },
+    {
+      "name": "Filter Videos - By Views",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/filter?minViews=100&sortBy=views&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "filter"],
+          "query": [
+            {
+              "key": "minViews",
+              "value": "100",
+              "description": "Minimum number of views"
+            },
+            {
+              "key": "sortBy",
+              "value": "views",
+              "description": "Sort by: title, views, createdAt, duration"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc",
+              "description": "asc or desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Find videos with minimum view count, sorted by popularity."
+      }
+    },
+    {
+      "name": "Filter Videos - By Duration",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/filter?maxDuration=300&sortBy=createdAt&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "filter"],
+          "query": [
+            {
+              "key": "maxDuration",
+              "value": "300",
+              "description": "Maximum duration in seconds (300s = 5 minutes)"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Find short videos (max 5 minutes), sorted by newest first."
+      }
+    },
+    {
+      "name": "Filter Videos - Most Viewed",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/filter?sortBy=views&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "filter"],
+          "query": [
+            {
+              "key": "sortBy",
+              "value": "views"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get most viewed videos."
+      }
+    },
+    {
+      "name": "Query Videos - Advanced Combined",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/query?search=cooking&tags=recipe,tutorial&minViews=50&sortBy=views&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "query"],
+          "query": [
+            {
+              "key": "search",
+              "value": "cooking",
+              "description": "Text search in title, description, tags"
+            },
+            {
+              "key": "tags",
+              "value": "recipe,tutorial",
+              "description": "Comma-separated tags (OR logic)"
+            },
+            {
+              "key": "minViews",
+              "value": "50",
+              "description": "Minimum views"
+            },
+            {
+              "key": "sortBy",
+              "value": "views"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Advanced query combining text search, tags filter, view count, and sorting.\n\nFind cooking videos tagged with 'recipe' OR 'tutorial', with minimum 50 views, sorted by most viewed."
+      }
+    },
+    {
+      "name": "Query Videos - By Creator",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/query?owner={{user_id}}&sortBy=createdAt&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "query"],
+          "query": [
+            {
+              "key": "owner",
+              "value": "{{user_id}}",
+              "description": "User ID of video creator"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all videos from a specific creator, sorted by newest."
+      }
+    },
+    {
+      "name": "Query Videos - Trending",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/query?minViews=500&sortBy=createdAt&sortOrder=desc&page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "query"],
+          "query": [
+            {
+              "key": "minViews",
+              "value": "500",
+              "description": "Videos with at least 500 views"
+            },
+            {
+              "key": "sortBy",
+              "value": "createdAt"
+            },
+            {
+              "key": "sortOrder",
+              "value": "desc"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Find trending content: videos with 500+ views, sorted by newest."
+      }
+    },
+    {
+      "name": "Get All Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos?page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all public videos with pagination."
+      }
+    },
+    {
+      "name": "Get Single Video",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/{{video_id}}",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "{{video_id}}"]
+        },
+        "description": "Get a specific video by ID."
+      }
+    },
+    {
+      "name": "Get Channel Videos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/channel/{{user_id}}?page=1&limit=10",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "channel", "{{user_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        },
+        "description": "Get all videos from a specific channel/user."
+      }
+    },
+    {
+      "name": "Increment Video Views",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/{{video_id}}/views",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "{{video_id}}", "views"]
+        },
+        "description": "Increment the view count for a video."
+      }
+    },
+    {
+      "name": "Update Video",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Updated title\",\n  \"description\": \"Updated description\",\n  \"tags\": [\"updated\", \"tags\"],\n  \"visibility\": \"public\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/{{video_id}}",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "{{video_id}}"]
+        },
+        "description": "Update video metadata (owner only)."
+      }
+    },
+    {
+      "name": "Delete Video",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/videos/{{video_id}}",
+          "protocol": "http",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "videos", "{{video_id}}"]
+        },
+        "description": "Delete a video (owner only)."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    },
+    {
+      "key": "video_id",
+      "value": "video_mongodb_id_here",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "user_mongodb_id_here",
+      "type": "string"
+    }
+  ]
+}

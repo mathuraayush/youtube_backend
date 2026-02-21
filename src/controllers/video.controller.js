@@ -1,9 +1,10 @@
-import  asyncHandler  from "../utils/asyncHandler.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
-import {uploadOnCloudinary} from "../utils/fileUpload.js"
+import { uploadOnCloudinary } from "../utils/fileUpload.js";
+import { generateVideoMetadata } from "../utils/aiMetadata.js";
+import mongoose from "mongoose";
 
 // Uploading Video with Thubnail,title,description, tags.
 
@@ -42,7 +43,7 @@ const uploadVideo = asyncHandler(async (req, res) => {
   }
 
   // 2️⃣ Extract fields
-  const { title, description, visibility = "public", tags } = req.body;
+  let { title, description, visibility = "public", tags } = req.body;
 
   if (!title || !description) {
     throw new ApiError(400, "Title and description are required");
@@ -72,14 +73,21 @@ const uploadVideo = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Thumbnail upload failed");
   }
 
-  // 5️⃣ Create video document
+  // 5️⃣ Generate AI metadata (improved title, description, and tags)
+  const aiMetadata = await generateVideoMetadata(
+    title,
+    description,
+    tags || ""
+  );
+
+  // 6️⃣ Create video document with AI-enhanced metadata
   const video = await Video.create({
     videoFile: uploadedVideo.url,
     thumbnail: uploadedThumbnail.url,
-    title,
-    description,
+    title: aiMetadata.title,
+    description: aiMetadata.description,
     visibility,
-    tags: tags ? tags.split(",").map(tag => tag.trim()) : [],
+    tags: aiMetadata.tags,
     duration: uploadedVideo.duration || 0,
     owner: req.user._id,
   });
@@ -88,7 +96,7 @@ const uploadVideo = asyncHandler(async (req, res) => {
     new ApiResponse(
       201,
       video,
-      "Video uploaded successfully"
+      "Video uploaded successfully with AI-enhanced metadata"
     )
   );
 });
@@ -242,14 +250,268 @@ const deleteVideo = asyncHandler(async (req, res) => {
   );
 });
 
+// 🔍 Smart Search Controller - Search by title, description, and tags
+const searchVideos = asyncHandler(async (req, res) => {
+  const { query, page = 1, limit = 10 } = req.query;
 
+  if (!query || query.trim() === "") {
+    throw new ApiError(400, "Search query is required");
+  }
 
-export { 
-        uploadVideo,
-        getAllVideos,
-        incrementVideoViews,
-        deleteVideo,
-        updateVideo,
-        getChannelVideos,
-        getVideoById 
-        };
+  const searchTerm = query.trim();
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+
+  // Create regex for case-insensitive search
+  const searchRegex = { $regex: searchTerm, $options: "i" };
+
+  const pipeline = Video.aggregate([
+    {
+      $match: {
+        visibility: "public",
+        $or: [
+          { title: searchRegex },
+          { description: searchRegex },
+          { tags: searchRegex },
+        ],
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        thumbnail: 1,
+        tags: 1,
+        views: 1,
+        duration: 1,
+        createdAt: 1,
+        "owner.username": 1,
+        "owner.avatar": 1,
+      },
+    },
+  ]);
+
+  const videos = await Video.aggregatePaginate(pipeline, {
+    page: pageNum,
+    limit: limitNum,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      videos,
+      `Search results for "${searchTerm}"`
+    )
+  );
+});
+
+// 🔎 Filter Videos - Filter by tags, visibility, date range, and sort options
+const filterVideos = asyncHandler(async (req, res) => {
+  const {
+    tags,
+    visibility = "public",
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+    minViews = 0,
+    maxDuration,
+  } = req.query;
+
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const minViewsNum = Number(minViews);
+
+  // Build match stage
+  const matchStage = { visibility };
+
+  if (minViewsNum > 0) {
+    matchStage.views = { $gte: minViewsNum };
+  }
+
+  if (maxDuration) {
+    matchStage.duration = { $lte: Number(maxDuration) };
+  }
+
+  if (tags) {
+    // tags can be comma-separated string
+    const tagArray = tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag);
+    if (tagArray.length > 0) {
+      matchStage.tags = { $in: tagArray };
+    }
+  }
+
+  // Build sort stage
+  const sortObj = {};
+  const sortKey = ["title", "views", "createdAt", "duration"].includes(sortBy)
+    ? sortBy
+    : "createdAt";
+  sortObj[sortKey] = sortOrder === "asc" ? 1 : -1;
+
+  const pipeline = Video.aggregate([
+    { $match: matchStage },
+    { $sort: sortObj },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        thumbnail: 1,
+        tags: 1,
+        views: 1,
+        duration: 1,
+        visibility: 1,
+        createdAt: 1,
+        "owner.username": 1,
+        "owner.avatar": 1,
+      },
+    },
+  ]);
+
+  const videos = await Video.aggregatePaginate(pipeline, {
+    page: pageNum,
+    limit: limitNum,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, videos, "Videos filtered successfully")
+  );
+});
+
+// 📊 Query Videos with advanced filters and aggregation
+const queryVideos = asyncHandler(async (req, res) => {
+  const {
+    search,
+    tags,
+    visibility = "public",
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 10,
+    minViews = 0,
+    maxDuration,
+    owner,
+  } = req.query;
+
+  const pageNum = Number(page);
+  const limitNum = Number(limit);
+  const minViewsNum = Number(minViews);
+
+  // Build match stage
+  const matchStage = { visibility };
+
+  // Add search condition if provided
+  if (search && search.trim()) {
+    const searchRegex = { $regex: search.trim(), $options: "i" };
+    matchStage.$or = [
+      { title: searchRegex },
+      { description: searchRegex },
+      { tags: searchRegex },
+    ];
+  }
+
+  // Filter by tags
+  if (tags) {
+    const tagArray = tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag);
+    if (tagArray.length > 0) {
+      matchStage.tags = { $in: tagArray };
+    }
+  }
+
+  // Filter by views
+  if (minViewsNum > 0) {
+    matchStage.views = { $gte: minViewsNum };
+  }
+
+  // Filter by duration
+  if (maxDuration) {
+    matchStage.duration = { $lte: Number(maxDuration) };
+  }
+
+  // Filter by owner
+  if (owner && mongoose.Types.ObjectId.isValid(owner)) {
+    matchStage.owner = new mongoose.Types.ObjectId(owner);
+  }
+
+  // Build sort stage
+  const sortObj = {};
+  const sortKey = ["title", "views", "createdAt", "duration"].includes(sortBy)
+    ? sortBy
+    : "createdAt";
+  sortObj[sortKey] = sortOrder === "asc" ? 1 : -1;
+
+  const pipeline = Video.aggregate([
+    { $match: matchStage },
+    { $sort: sortObj },
+    {
+      $lookup: {
+        from: "users",
+        localField: "owner",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    { $unwind: "$owner" },
+    {
+      $project: {
+        title: 1,
+        description: 1,
+        thumbnail: 1,
+        tags: 1,
+        views: 1,
+        duration: 1,
+        visibility: 1,
+        createdAt: 1,
+        "owner._id": 1,
+        "owner.username": 1,
+        "owner.avatar": 1,
+      },
+    },
+  ]);
+
+  const videos = await Video.aggregatePaginate(pipeline, {
+    page: pageNum,
+    limit: limitNum,
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, videos, "Videos queried successfully")
+  );
+});
+
+export {
+  uploadVideo,
+  getAllVideos,
+  incrementVideoViews,
+  deleteVideo,
+  updateVideo,
+  getChannelVideos,
+  getVideoById,
+  searchVideos,
+  filterVideos,
+  queryVideos,
+};
